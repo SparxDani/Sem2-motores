@@ -5,10 +5,9 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     public float velocidad = 10;
-
     Rigidbody2D rb;
     SpriteRenderer sp;
-    private Sprite forma;
+    private Sprite shape;
     private Color color;
     [SerializeField] private float raycastvelocity = 2;
     [SerializeField] LayerMask layers;
@@ -23,52 +22,44 @@ public class Player : MonoBehaviour
     {
         if (collider.tag == "Shape")
         {
-            forma = collider.GetComponent<SpriteRenderer>().sprite;
-            sp.sprite = forma;
+            shape = collider.GetComponent<SpriteRenderer>().sprite;
+            sp.sprite = shape;
         }
         if (collider.tag == "Color")
         {
             color = collider.GetComponent<SpriteRenderer>().color;
             sp.color = color;
         }
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetAxis("Horizontal") != 0)
-        {
-            rb.velocity = new Vector2(velocidad * Input.GetAxis("Horizontal"), rb.velocity.y);
-        }
-        else
-        {
-            rb.velocity = new Vector2(0f, rb.velocity.y);
-        }
-        if (Input.GetAxis("Vertical") != 0)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, Input.GetAxis("Vertical") * velocidad);
-        }
-        else
-        {
-            rb.velocity = new Vector2(rb.velocity.x, 0.0f);
-        }
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float verticalInput = Input.GetAxis("Vertical");
 
-        Vector2 inputAxis = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+        rb.velocity = new Vector2(velocidad * horizontalInput, velocidad * verticalInput);
 
-        Debug.DrawRay(transform.position, inputAxis * raycastvelocity, Color.red);
+        Vector2 raycastDirection = new Vector2(horizontalInput, verticalInput).normalized;
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, raycastDirection, raycastvelocity, layers);
 
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position, inputAxis, out hit, Mathf.Infinity, layers))
+        if (hit.collider != null)
         {
-            Debug.DrawRay(transform.position, inputAxis * hit.distance, Color.yellow);
-            Debug.Log("Did hit");
-        }
-        else
-        {
-            Debug.DrawRay(transform.position, inputAxis * 100, Color.white);
-            Debug.Log("Done");
-        }
+            GameObject hitObject = hit.collider.gameObject;
+            Debug.Log("Nombre del objeto: " + hitObject.name );
+            Debug.Log("Posición del objeto: " + hitObject.transform.position);
+            Debug.Log("Tag del objeto: " + hitObject.tag);
 
+            if (hitObject.tag == "Shape")
+            {
+                Sprite shapeSprite = hitObject.GetComponent<SpriteRenderer>().sprite;
+                Debug.Log("Sprite: " + shapeSprite.name);
+            }
+            else if (hitObject.tag == "Color")
+            {
+                Color objectColor = hitObject.GetComponent<SpriteRenderer>().color;
+                Debug.Log("Color: " + objectColor);
+            }
+        }
     }
 }
